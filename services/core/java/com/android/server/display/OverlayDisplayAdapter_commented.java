@@ -15,6 +15,8 @@
  */
 
 package com.android.server.display;
+/* → java is a top level package
+→ util is a sub package */
 
 import com.android.internal.util.DumpUtils;
 import com.android.internal.util.IndentingPrintWriter;
@@ -62,19 +64,23 @@ import java.util.regex.Pattern;
  * </pre>
  * Supported flags:
  * <ul>
- * <li><pre>secure</pre>: creates a secure display</li>
+ * <li> <pre>secure</pre>: creates a secure display</li>
  * </ul>
  * </p>
  */
 final class OverlayDisplayAdapter extends DisplayAdapter {
     static final String TAG = "OverlayDisplayAdapter";
     static final boolean DEBUG = false;
-
+/*once it is initialized, it's value cannot be changed,
+initialize your final static variable, at the time of declaration or in static block */
+    
     private static final int MIN_WIDTH = 100;
     private static final int MIN_HEIGHT = 100;
     private static final int MAX_WIDTH = 4096;
     private static final int MAX_HEIGHT = 4096;
-
+    
+/* you can compile a Pattern instance using Pattern.compile() 
+which can be used multiple times to match the regular expression against multiple texts */
     private static final Pattern DISPLAY_PATTERN =
             Pattern.compile("([^,]+)(,[a-z]+)*");
     private static final Pattern MODE_PATTERN =
@@ -82,13 +88,20 @@ final class OverlayDisplayAdapter extends DisplayAdapter {
 
     // Unique id prefix for overlay displays.
     private static final String UNIQUE_ID_PREFIX = "overlay:";
-
+    
+/* pre defined class in Handler which is imported from  android.os.Handler */
     private final Handler mUiHandler;
-    private final ArrayList<OverlayDisplayHandle> mOverlays =
+    
+    /* creating array list with object mOverlays */
+     private final ArrayList<OverlayDisplayHandle> mOverlays =
             new ArrayList<OverlayDisplayHandle>();
+    
+    /* creating an empty string */
     private String mCurrentOverlaySetting = "";
 
     // Called with SyncRoot lock held.
+    /* initialising the objects of superclass constructor*/
+ 
     public OverlayDisplayAdapter(DisplayManagerService.SyncRoot syncRoot,
             Context context, Handler handler, Listener listener, Handler uiHandler) {
         super(syncRoot, context, handler, listener, TAG);
