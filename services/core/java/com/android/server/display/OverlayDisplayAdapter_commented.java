@@ -75,8 +75,7 @@ final class OverlayDisplayAdapter extends DisplayAdapter {
     static final String TAG = "OverlayDisplayAdapter";
     static final boolean DEBUG = false;
 
-    // Defining the private class variables MIN_WIDTH,MIN_HEIGHT,MAX_WIDTH and MAX_HEIGHT to be in the range 100 to 4096
-    
+    // Defining the private class variables MIN_WIDTH,MIN_HEIGHT,MAX_WIDTH and MAX_HEIGHT to be in the range 100 to 4096 
     private static final int MIN_WIDTH = 100;
     private static final int MIN_HEIGHT = 100;
     private static final int MAX_WIDTH = 4096;
@@ -107,7 +106,6 @@ final class OverlayDisplayAdapter extends DisplayAdapter {
         Constructor taking arguments for both parent class and the sub class
         The parent class constructor is invoked by the super method that passes values to the parent class variables.
     */
- 
     public OverlayDisplayAdapter(DisplayManagerService.SyncRoot syncRoot,
             Context context, Handler handler, Listener listener, Handler uiHandler) {
         super(syncRoot, context, handler, listener, TAG);
@@ -195,7 +193,7 @@ final class OverlayDisplayAdapter extends DisplayAdapter {
         }
     }
 
-    
+    // Function to update the Overlay Devices with proper modes and log messages.
     private void updateOverlayDisplayDevicesLocked() {
         /*
             "getString" retrieves the value from the database based on the access controller "getContext().getContentResolver()"
@@ -316,38 +314,60 @@ final class OverlayDisplayAdapter extends DisplayAdapter {
                     // Pre increment the count and assign it to the variable "number"
                     int number = ++count;
                     
-                    
+                    /*
+                        "getContext()" invokes the method "getResources()" ("android.content.Context") which inturn 
+                        invokes "getString()" (android.provider.Settings)
+                        
+                        Returns the corresponding value from the database by matching with "number" and the resolver
+                        "com.android.internal.R.string.display_manager_overlay_display_name"
+                    */
                     String name = getContext().getResources().getString(
                             com.android.internal.R.string.display_manager_overlay_display_name,
                             number);
+                    
+                    /* 
+                        Call the function "chooseOverlayGravity" with parameter "number" containing the count value
+                      which returns the value of the edges of the container based on the overlay number
+                    */ 
                     int gravity = chooseOverlayGravity(number);
+                    
+                    // Store the boolean value of (check if flagstring is null and if it contains the value ",secure" in "secure" variable
                     boolean secure = flagString != null && flagString.contains(",secure");
-
+                    
+                    // Update the log with the TAG value, and the appropriate message with the mode and the count of overlay device
                     Slog.i(TAG, "Showing overlay display device #" + number
                             + ": name=" + name + ", modes=" + Arrays.toString(modes.toArray()));
-
+                    
+                    // Adding a new "OverlayDisplayHandle" to the Array List "mOverlays" with the below mentioned parameters.
                     mOverlays.add(new OverlayDisplayHandle(name, modes, gravity, secure, number));
                     continue;
                 }
             }
+            // Update the log with the warning message "Malformed overlay display device setting"
             Slog.w(TAG, "Malformed overlay display devices setting: " + value);
         }
     }
-
+    
+    // Function to compute the edge of the specification and return the same based on the "overlayNumber"
     private static int chooseOverlayGravity(int overlayNumber) {
         switch (overlayNumber) {
+            // "overlayNumber" => 1; Return the top left edge specification
             case 1:
                 return Gravity.TOP | Gravity.LEFT;
+            // "overlayNumber" => 2; Return the bottom right edge specification
             case 2:
                 return Gravity.BOTTOM | Gravity.RIGHT;
+            // "overlayNumber" => 3; Return the top right edge specification
             case 3:
                 return Gravity.TOP | Gravity.RIGHT;
+            // "overlayNumber" => 4; Return the bottom left edge specification
             case 4:
             default:
                 return Gravity.BOTTOM | Gravity.LEFT;
         }
     }
-
+    
+    // Defining abstract class "OverlayDisplayDevice" which inherits from abstract class "DisplayDevice"
     private abstract class OverlayDisplayDevice extends DisplayDevice {
         private final String mName;
         private final float mRefreshRate;
@@ -362,7 +382,11 @@ final class OverlayDisplayAdapter extends DisplayAdapter {
         private Surface mSurface;
         private DisplayDeviceInfo mInfo;
         private int mActiveMode;
-
+        
+        /* 
+            Constructor taking arguments for both parent class and the sub class
+            The parent class constructor is invoked by the super method that passes values to the parent class variables.
+        */
         public OverlayDisplayDevice(IBinder displayToken, String name,
                 List<OverlayMode> modes, int activeMode, int defaultMode,
                 float refreshRate, long presentationDeadlineNanos,
@@ -376,7 +400,13 @@ final class OverlayDisplayAdapter extends DisplayAdapter {
             mState = state;
             mSurfaceTexture = surfaceTexture;
             mRawModes = modes;
+            // Creating an object Display.Mode imported from android.view.Display taking the parameter as mode size
             mModes = new Display.Mode[modes.size()];
+            
+            /*  
+                Iterating from 0 - size of the modes Array List, each index of "mModes" is set the the value of the specific
+                "mwidth", "mHeight", "refreshRate"
+            */
             for (int i = 0; i < modes.size(); i++) {
                 OverlayMode mode = modes.get(i);
                 mModes[i] = createMode(mode.mWidth, mode.mHeight, refreshRate);
@@ -384,36 +414,61 @@ final class OverlayDisplayAdapter extends DisplayAdapter {
             mActiveMode = activeMode;
             mDefaultMode = defaultMode;
         }
-
+        
+        // Function to set the Surface texture to null
         public void destroyLocked() {
             mSurfaceTexture = null;
+            // If the "mSurface" is not null, the local reference for that surface is set to null and becomes invalid
+            // Function "release()" is defined under "android.view.Surface"
             if (mSurface != null) {
                 mSurface.release();
                 mSurface = null;
             }
+            // "getDisplayTokenLocked()" returns the "mDisplayToken" of the parent class Display Device
+            // Makes the Display Token invalid and sets it to null (Defined in android.view.SurfaceControl)
             SurfaceControl.destroyDisplay(getDisplayTokenLocked());
         }
-
+        
+        
+        // Overriding the method "hasStableUniqueId" declared in parent class
         @Override
+        // Checks wether te Unique ID of the Device is stable across reboots and returns the boolean value accordingly
         public boolean hasStableUniqueId() {
             return false;
         }
-
+        
+        
+        // Overriding the method "performTraversalInTransactionLocked" declared in parent class
         @Override
+        // Update the display device properties while in transaction
         public void performTraversalInTransactionLocked() {
+            // Condition to check if the Surface Texture object is not null
             if (mSurfaceTexture != null) {
+                /*
+                    Condition to check if the Surface Object is null and if it is then a new object is referenced to the same
+                    with the surfaceTexture object
+                */
                 if (mSurface == null) {
                     mSurface = new Surface(mSurfaceTexture);
                 }
+                
+                /* 
+                    Call the parent class method "setSurfaceInTransactionLocked" with the parameter "mSurface" which updates the 
+                    properties of the display device while in transaction    
+                */
                 setSurfaceInTransactionLocked(mSurface);
             }
         }
-
+        
+        
+        // Setting the state of the Display Device with the state value passed as parameter and the info is set to null
         public void setStateLocked(int state) {
             mState = state;
             mInfo = null;
         }
-
+        
+        
+        // Overriding the "getDisplayDeviceInfoLocked" defined in class "DisplayDeviceInfo" in the parent class
         @Override
         public DisplayDeviceInfo getDisplayDeviceInfoLocked() {
             if (mInfo == null) {
