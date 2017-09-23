@@ -184,68 +184,139 @@ final class OverlayDisplayAdapter extends DisplayAdapter {
             }
         });
     }
-
+    
+    /* 
+        Check wether the control is returned back from the thread using "synchronized" and if true invoke 
+        the method "updateOverlayDisplayDevicesLocked" 
+    */
     private void updateOverlayDisplayDevices() {
         synchronized (getSyncRoot()) {
             updateOverlayDisplayDevicesLocked();
         }
     }
 
+    
     private void updateOverlayDisplayDevicesLocked() {
+        /*
+            "getString" retrieves the value from the database based on the access controller "getContext().getContentResolver()"
+            and the name "Settings.Global.OVERLAY_DISPLAY_DEVICES" which is looked up in the database.
+        */        
         String value = Settings.Global.getString(getContext().getContentResolver(),
                 Settings.Global.OVERLAY_DISPLAY_DEVICES);
+        // If the returned value is null, empty string is assigned to string "value"
         if (value == null) {
             value = "";
         }
-
+        
+        // If the value is equal to the value of "mCurrentOverlaySetting", the control from this function is returned to its caller.
         if (value.equals(mCurrentOverlaySetting)) {
             return;
         }
+        
+        // Assigning "value" to "mCurrentOverlaySetting"
         mCurrentOverlaySetting = value;
-
+        
+        // Checking that Array List "mOverlays" is not empty and update the logs accordingly
         if (!mOverlays.isEmpty()) {
+            /*
+                Invoking the method "i" from class Slog imported from "android.util.Slog"
+                Update the log with the Tag "OverlayDisplayAdapter" and the message "Dismissing all overlay display devices." 
+            */
             Slog.i(TAG, "Dismissing all overlay display devices.");
+            
+            // Iterating over the Array List "mOverlays" and invoking the method "dismissLocked" which removes the call backs post it to handler
             for (OverlayDisplayHandle overlay : mOverlays) {
                 overlay.dismissLocked();
             }
+            
+            // Clearing the Array List "mOverlays"
             mOverlays.clear();
         }
-
+        
+        // Initializing count to 0
         int count = 0;
+        
+        // Iterating each element of value split with the regex ";"
         for (String part : value.split(";")) {
+            /* 
+                Creating an object "displayMatcher" of type Matcher imported from "java.util.regex.Matcher"
+                Each "part" of the "value" string is matched with "DISPLAY_PATTERN" and the value is stored in Matcher object "displayMatcher"
+            */
             Matcher displayMatcher = DISPLAY_PATTERN.matcher(part);
+            
+            // Checks wether the "displayMatcher" matches entirely with the pattern
             if (displayMatcher.matches()) {
+                // If the count value exceeds 4 the log is updated with a warning accordingly and the control exits the function
                 if (count >= 4) {
+                    // Update a warning message with the "TAG" value and the "value" string if more than 4 overlay display devices are specified
                     Slog.w(TAG, "Too many overlay display devices specified: " + value);
                     break;
                 }
+                /* 
+                    "group" function stores the given parameter's subsequence of string matched with the previous match pattern.
+                    modeString contains the all the modes of "part"
+                    flagString contains the all the flags of "part"
+                */
                 String modeString = displayMatcher.group(1);
                 String flagString = displayMatcher.group(2);
+                
+                // Create Array List "modes" of type "OverlayMode" defined at the end of the file
                 ArrayList<OverlayMode> modes = new ArrayList<>();
+                
+                // Iterating over individual modes by splitting with regexp "\\|" in "modeString"
                 for (String mode : modeString.split("\\|")) {
+                    // Creating an object modeMatcher which matches the "mode" with pre-defined "MODE_PATTERN" 
                     Matcher modeMatcher = MODE_PATTERN.matcher(mode);
+                    
+                    // Checks wether the "modeMatcher" matches entirely with the pattern
                     if (modeMatcher.matches()) {
+                        // Exception Handling for checing Number Format
                         try {
+                            /*
+                                Width => First match in string upto length of 10 stored as integer
+                                Height => Second match in string upto length of 10 stored as integer
+                                DensityDpi => Third match in string upto length of 10 stored as integer
+                            */
                             int width = Integer.parseInt(modeMatcher.group(1), 10);
                             int height = Integer.parseInt(modeMatcher.group(2), 10);
                             int densityDpi = Integer.parseInt(modeMatcher.group(3), 10);
+                            
+                            /*
+                                Checking wether the width exists between the range of 100 - 4096,
+                                Height between the range of 100 - 4096 and DensityDpi between the range of 120 - 640
+                                (DENSITY_LOW and DENSITY_XXXHIGH defined in "android.util.DisplayMetrics" for the device
+                                resolution between Low-density screens upto 4k television screens)
+                                
+                                If condition is met, the mode value is added into the Array List "modes" with the 
+                                equivalent width, height and DensityDpi and the loop is continued
+                            */
                             if (width >= MIN_WIDTH && width <= MAX_WIDTH
                                     && height >= MIN_HEIGHT && height <= MAX_HEIGHT
                                     && densityDpi >= DisplayMetrics.DENSITY_LOW
                                     && densityDpi <= DisplayMetrics.DENSITY_XXXHIGH) {
                                 modes.add(new OverlayMode(width, height, densityDpi));
                                 continue;
-                            } else {
+                            } 
+                            // If the above condition fails, the log is updated with proper message and the specific mode
+                            else {
+                                // Invoke the method "w" which updates the log with the TAG value, appropriate warning message and the mode
                                 Slog.w(TAG, "Ignoring out-of-range overlay display mode: " + mode);
                             }
                         } catch (NumberFormatException ex) {
                         }
-                    } else if (mode.isEmpty()) {
+                    }
+                    // If mode is empty, the next iteration is called
+                    else if (mode.isEmpty()) {
                         continue;
                     }
                 }
+                
+                // Checking that the mode is not empty
                 if (!modes.isEmpty()) {
+                    // Pre increment the count and assign it to the variable "number"
                     int number = ++count;
+                    
+                    
                     String name = getContext().getResources().getString(
                             com.android.internal.R.string.display_manager_overlay_display_name,
                             number);
