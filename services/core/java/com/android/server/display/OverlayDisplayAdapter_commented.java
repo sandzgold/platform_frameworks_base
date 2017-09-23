@@ -135,25 +135,51 @@ final class OverlayDisplayAdapter extends DisplayAdapter {
     }
     
     /*
-        Overriding the parent class method "registerLocked" 
+        Overriding the parent class method "registerLocked"
+        "registerLocked" registers the Overlay Display Adapter with the Display Manager
+        Default display gets registered during the boot process while the remaining process gets registered dynamically.
     */
 
     @Override
     public void registerLocked() {
+        // Invoking the parent class method "registerLocked"
         super.registerLocked();
-
+        
+        /* 
+            Invoking a new thread which checks for any content change in the Display device in the message queue
+            and call the method "updateOverlayDisplayDevices" to update the status in the Display Manager.
+            Runnable is an interface which is inherited here.
+        */    
         getHandler().post(new Runnable() {
             @Override
+            // Overriding/Defining the interface method "run"
             public void run() {
+                
+                /*
+                    Obtain the content Information change through the abstract class "Context" containing method "getContext"
+                    imported from "android.content.Context" which invokes the method "getContentResolver" which again invokes 
+                    the method "registerContentObserver" imported from "android.database.ContentObserver"
+                */
+                /*  
+                    "registerContentObserver" takes the arguments "Settings.Global.getUriFor" which gets the content URI
+                    for the parameter "Settings.Global.OVERLAY_DISPLAY_DEVICES" which is imported from "android.provider.Settings",
+                    boolean value true, and a "ConstructObserver" object imported from "android.database.ContentObserver"
+                */  
                 getContext().getContentResolver().registerContentObserver(
+                        
                         Settings.Global.getUriFor(Settings.Global.OVERLAY_DISPLAY_DEVICES),
                         true, new ContentObserver(getHandler()) {
                             @Override
+                            /* 
+                                Overriding the onChange method defined in class ContentObserver imported from "android.database.ContentObserver"
+                                Method gets invoked when there is a content change
+                            */
                             public void onChange(boolean selfChange) {
+                                // Invoke the method "updateOverlayDisplayDevices" when the parameter "selfChange" is true
                                 updateOverlayDisplayDevices();
                             }
                         });
-
+                // Invoke the method "updateOverlayDisplayDevices"
                 updateOverlayDisplayDevices();
             }
         });
