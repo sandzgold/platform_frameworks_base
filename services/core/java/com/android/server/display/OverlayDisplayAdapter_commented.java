@@ -68,58 +68,75 @@ import java.util.regex.Pattern;
  * </ul>
  * </p>
  */
-/*Declaring the class "OverlayDisplayAdapter" which inherits from the parent class DisplayAdapter*/
+
+// Declaring the class "OverlayDisplayAdapter" which inherits from the parent class DisplayAdapter
 final class OverlayDisplayAdapter extends DisplayAdapter {
-    /*Declaring the class constant variables TAG and DEBUG to "OverlayDisplayAdapter" and "false" respectively*/    
+    // Declaring the class constant variables TAG and DEBUG to "OverlayDisplayAdapter" and "false" respectively    
     static final String TAG = "OverlayDisplayAdapter";
     static final boolean DEBUG = false;
 
-    /*Defining the private class variables MIN_WIDTH,MIN_HEIGHT,MAX_WIDTH and MAX_HEIGHT to be in the range 100 to 4096*/
+    // Defining the private class variables MIN_WIDTH,MIN_HEIGHT,MAX_WIDTH and MAX_HEIGHT to be in the range 100 to 4096
     
     private static final int MIN_WIDTH = 100;
     private static final int MIN_HEIGHT = 100;
     private static final int MAX_WIDTH = 4096;
     private static final int MAX_HEIGHT = 4096;
     
-    /* Display pattern accepts a particular pattern to match the regular expression against multiple texts separated by ","*/
+    // Display pattern accepts a particular pattern to match the regular expression against multiple texts separated by ","
     private static final Pattern DISPLAY_PATTERN =
             Pattern.compile("([^,]+)(,[a-z]+)*");
-    /*  Mode pattern accepts a particular pattern to match the regular expression denoted by "(num)*(num)/(num)"*/
+    // Mode pattern accepts a particular pattern to match the regular expression denoted by "(num)*(num)/(num)"
     private static final Pattern MODE_PATTERN =
             Pattern.compile("(\\d+)x(\\d+)/(\\d+)");
 
-    // Unique id prefix for overlay displays.
+    // UNIQUE_ID_PREFIX to denote that current call is for overlay displays.
     private static final String UNIQUE_ID_PREFIX = "overlay:";
     
-    /* pre defined class in Handler which is imported from  android.os.Handler */
+    // Declaring class variable mUiHandler of type Handler which is imported from android.os.Handler
     private final Handler mUiHandler;
     
-    /* creating array list with object mOverlays */
+    /* Creating Array list with object mOverlays */
      private final ArrayList<OverlayDisplayHandle> mOverlays =
             new ArrayList<OverlayDisplayHandle>();
     
-    /* creating an empty string */
+    /* Creating an empty string */
     private String mCurrentOverlaySetting = "";
 
     // Called with SyncRoot lock held.
-    /* initialising the objects of superclass constructor*/
+    /* 
+        Constructor taking arguments for both parent class and the sub class
+        The parent class constructor is invoked by the super method that passes values to the parent class variables.
+    */
  
     public OverlayDisplayAdapter(DisplayManagerService.SyncRoot syncRoot,
             Context context, Handler handler, Listener listener, Handler uiHandler) {
         super(syncRoot, context, handler, listener, TAG);
         mUiHandler = uiHandler;
     }
-
+    
+    /*
+        Overriding the parent class method "dumpLocked"
+        "dumpLocked" dumps the local state of the invoking class object
+        Takes up parameter pw of type PrintWriter imported from java.io.PrintWriter
+    */
     @Override
     public void dumpLocked(PrintWriter pw) {
+        // Parent class method is invoked by passing the object pw of type PrintWriter
         super.dumpLocked(pw);
 
+        // Prints to the console the value of the current overlay setting and the size of the Array List "mOverlays"
         pw.println("mCurrentOverlaySetting=" + mCurrentOverlaySetting);
         pw.println("mOverlays: size=" + mOverlays.size());
+        
+        // Iterating over the Array List, each element of "OverlayDisplayHandle" gets dumped locally
         for (OverlayDisplayHandle overlay : mOverlays) {
             overlay.dumpLocked(pw);
         }
     }
+    
+    /*
+        Overriding the parent class method "registerLocked" 
+    */
 
     @Override
     public void registerLocked() {
