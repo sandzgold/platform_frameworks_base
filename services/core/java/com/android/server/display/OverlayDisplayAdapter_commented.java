@@ -68,28 +68,30 @@ import java.util.regex.Pattern;
  * </ul>
  * </p>
  */
+/*Declaring the class "OverlayDisplayAdapter" which inherits from the parent class DisplayAdapter*/
 final class OverlayDisplayAdapter extends DisplayAdapter {
+    /*Declaring the class constant variables TAG and DEBUG to "OverlayDisplayAdapter" and "false" respectively*/    
     static final String TAG = "OverlayDisplayAdapter";
     static final boolean DEBUG = false;
-/*once it is initialized, it's value cannot be changed,
-initialize your final static variable, at the time of declaration or in static block */
+
+    /*Defining the private class variables MIN_WIDTH,MIN_HEIGHT,MAX_WIDTH and MAX_HEIGHT to be in the range 100 to 4096*/
     
     private static final int MIN_WIDTH = 100;
     private static final int MIN_HEIGHT = 100;
     private static final int MAX_WIDTH = 4096;
     private static final int MAX_HEIGHT = 4096;
     
-/* you can compile a Pattern instance using Pattern.compile() 
-which can be used multiple times to match the regular expression against multiple texts */
+    /* Display pattern accepts a particular pattern to match the regular expression against multiple texts separated by ","*/
     private static final Pattern DISPLAY_PATTERN =
             Pattern.compile("([^,]+)(,[a-z]+)*");
+    /*  Mode pattern accepts a particular pattern to match the regular expression denoted by "(num)*(num)/(num)"*/
     private static final Pattern MODE_PATTERN =
             Pattern.compile("(\\d+)x(\\d+)/(\\d+)");
 
     // Unique id prefix for overlay displays.
     private static final String UNIQUE_ID_PREFIX = "overlay:";
     
-/* pre defined class in Handler which is imported from  android.os.Handler */
+    /* pre defined class in Handler which is imported from  android.os.Handler */
     private final Handler mUiHandler;
     
     /* creating array list with object mOverlays */
