@@ -644,47 +644,72 @@ final class OverlayDisplayAdapter extends DisplayAdapter {
         }
 
         // Called on the UI thread.
+        // Function overriding the declaration from the interface "OverlayDisplayWindow.Listener"
         @Override
+        // Function to update the display device event with the event "DISPLAY_DEVICE_EVENT_ADDED" upon window creation 
         public void onWindowCreated(SurfaceTexture surfaceTexture, float refreshRate,
                 long presentationDeadlineNanos, int state) {
             synchronized (getSyncRoot()) {
+                // Creating Display using "mName" & "mSecure" of SurfaceControl class and assigning the value to displayToken of type Ibinder
+                // IBinder is defined in "android.os.IBinder"
                 IBinder displayToken = SurfaceControl.createDisplay(mName, mSecure);
+                
+                // Assigning a new object reference to the "mDevice"
                 mDevice = new OverlayDisplayDevice(displayToken, mName, mModes, mActiveMode,
                         DEFAULT_MODE_INDEX, refreshRate, presentationDeadlineNanos,
                         mSecure, state, surfaceTexture, mNumber) {
                     @Override
+                    // Update the Mode change with the new value and post the resulting call backs to the Handler
                     public void onModeChangedLocked(int index) {
                         onActiveModeChangedLocked(index);
                     }
                 };
-
+                // Sends the display device event "DISPLAY_DEVICE_EVENT_ADDED" to the Display Adapter asynchronously
                 sendDisplayDeviceEventLocked(mDevice, DISPLAY_DEVICE_EVENT_ADDED);
             }
         }
+        
 
         // Called on the UI thread.
+        // Function overriding the declaration from the interface "OverlayDisplayWindow.Listener"
         @Override
+        // Function to update the display device event with the event "DISPLAY_DEVICE_EVENT_REMOVED" upon window deallocation 
         public void onWindowDestroyed() {
+            // Check wether the control returned from the Thread
             synchronized (getSyncRoot()) {
+                // If the mDevice object is not null, the destroyLocked function is invoked which sets the 
+                // "mSurfaceTexture " & "mSurface" to null and releases the "mSurface"
                 if (mDevice != null) {
                     mDevice.destroyLocked();
+                    // Sends the display device event "DISPLAY_DEVICE_EVENT_REMOVED" to the Display Adapter asynchronously
                     sendDisplayDeviceEventLocked(mDevice, DISPLAY_DEVICE_EVENT_REMOVED);
                 }
             }
         }
 
+        
         // Called on the UI thread.
+        // Function overriding the declaration from the interface "OverlayDisplayWindow.Listener"
         @Override
+        // Function to update the display device event with the event "DISPLAY_DEVICE_EVENT_CHANGED" upon window state change
         public void onStateChanged(int state) {
             synchronized (getSyncRoot()) {
+                // If the mDevice object is not null, the setStateLocked function is invoked which sets the 
+                // "mState" value with "state"
                 if (mDevice != null) {
                     mDevice.setStateLocked(state);
+                    // Sends the display device event "DISPLAY_DEVICE_EVENT_CHANGED" to the Display Adapter asynchronously
                     sendDisplayDeviceEventLocked(mDevice, DISPLAY_DEVICE_EVENT_CHANGED);
                 }
             }
         }
-
+        
+        // Dumps the local state of the invoking class object
         public void dumpLocked(PrintWriter pw) {
+            /*  
+                PrintWriter prints the values in text-output stream to the console.
+                Name, Modes, Active Mode, Gravity, Secure and Number are printed to the console
+            */
             pw.println("  " + mName + ":");
             pw.println("    mModes=" + Arrays.toString(mModes.toArray()));
             pw.println("    mActiveMode=" + mActiveMode);
@@ -694,22 +719,35 @@ final class OverlayDisplayAdapter extends DisplayAdapter {
 
             // Try to dump the window state.
             if (mWindow != null) {
+                // Create an object "ipw" of type "IndentingPrintWriter" imported from "com.android.internal.util.IndentingPrintWriter"
+                // Mentioning 4 spaces as the indent length which is added to the object "ipw" using "increaseIndent"
                 final IndentingPrintWriter ipw = new IndentingPrintWriter(pw, "    ");
                 ipw.increaseIndent();
+                
+                // Timeout of 200ms is provided to avoid a deadlock
+                // (DumpUtils is imported from "com.android.internal.util.DumpUtils")
                 DumpUtils.dumpAsync(mUiHandler, mWindow, ipw, "", 200);
             }
         }
 
         // Runs on the UI thread.
+        // "mShowRunnable" defined as type "Runnable" (defined in Runnable.java) which reduces code duplication when using multiple sessions
         private final Runnable mShowRunnable = new Runnable() {
             @Override
             public void run() {
+                // "mode" is set the Active mode value
                 OverlayMode mode = mModes.get(mActiveMode);
+                
+                // New "window" object of type "OverlayDisplayWindow" is created with the name, width, height, densitydpi, gravity, 
+                // secure, "OverlayDisplayHandle"
                 OverlayDisplayWindow window = new OverlayDisplayWindow(getContext(),
                         mName, mode.mWidth, mode.mHeight, mode.mDensityDpi, mGravity, mSecure,
                         OverlayDisplayHandle.this);
+                
+                // Add a view to the Window Manager and Clear the Live state from the Window (Defined in parent class)
                 window.show();
-
+                
+                // Setting "window" object to "mWindow" is the control from thread has returned
                 synchronized (getSyncRoot()) {
                     mWindow = window;
                 }
@@ -717,15 +755,19 @@ final class OverlayDisplayAdapter extends DisplayAdapter {
         };
 
         // Runs on the UI thread.
+        // "mDismissRunnable" defined as type "Runnable" which reduces code duplication when using multiple sessions
         private final Runnable mDismissRunnable = new Runnable() {
             @Override
             public void run() {
                 OverlayDisplayWindow window;
+                
+                // Setting "window" object to "mWindow" is the control from thread has returned and setting "mWindow" to null
                 synchronized (getSyncRoot()) {
                     window = mWindow;
                     mWindow = null;
                 }
-
+                
+                // If window is not null, the current view is removed from the Window Manager (Defined in parent class)
                 if (window != null) {
                     window.dismiss();
                 }
@@ -733,18 +775,25 @@ final class OverlayDisplayAdapter extends DisplayAdapter {
         };
 
         // Runs on the UI thread.
+        // "mResizeRunnable" defined as type "Runnable" which reduces code duplication when using multiple sessions
         private final Runnable mResizeRunnable = new Runnable() {
             @Override
             public void run() {
                 OverlayMode mode;
                 OverlayDisplayWindow window;
+                
+                // If "window" is null and the control from thread has returned, the control from function is returned to its caller
                 synchronized (getSyncRoot()) {
                     if (mWindow == null) {
                         return;
                     }
+                    
+                    // "mode" is set to the Active mode value from mModes Array and "window" is set to "mWindow"
                     mode = mModes.get(mActiveMode);
                     window = mWindow;
                 }
+                
+                // Resizing the current active window with the mentioned width, height and DensityDPI
                 window.resize(mode.mWidth, mode.mHeight, mode.mDensityDpi);
             }
         };
@@ -753,19 +802,26 @@ final class OverlayDisplayAdapter extends DisplayAdapter {
     /**
      * A display mode for an overlay display.
      */
+    // Declaring Class "OverlayMode" to update the new values in appended string formats
     private static final class OverlayMode {
         final int mWidth;
         final int mHeight;
         final int mDensityDpi;
-
+        
+        // Constructor to initialize the width, height and densityDpi to respective class variables
         OverlayMode(int width, int height, int densityDpi) {
             mWidth = width;
             mHeight = height;
             mDensityDpi = densityDpi;
         }
-
+        
+        // Overriding the function defined in DisplayDeviceInfo.java
         @Override
+        // Method for printing the values in string format and returning the same
         public String toString() {
+            
+            // Building a new string of type "StringBuilder" contining the values of width, height and densityDpi in a specific format
+            // Format => {width=mWidth, height=mHeight, densityDpi=mDensityDpi}
             return new StringBuilder("{")
                     .append("width=").append(mWidth)
                     .append(", height=").append(mHeight)
