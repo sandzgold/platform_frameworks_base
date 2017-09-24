@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.android.server.display;
-/* → java is a top level package
-→ util is a sub package */
 
+// Importing from individual classes based on requirements
 import com.android.internal.util.DumpUtils;
 import com.android.internal.util.IndentingPrintWriter;
 
