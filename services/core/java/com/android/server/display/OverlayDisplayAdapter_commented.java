@@ -71,11 +71,11 @@ import java.util.regex.Pattern;
 
 // Declaring the class "OverlayDisplayAdapter" which inherits from the parent class DisplayAdapter
 final class OverlayDisplayAdapter extends DisplayAdapter {
-    // Declaring the class constant variables TAG and DEBUG to "OverlayDisplayAdapter" and "false" respectively    
+    // Assigning the class constant variables TAG and DEBUG to "OverlayDisplayAdapter" and "false" respectively    
     static final String TAG = "OverlayDisplayAdapter";
     static final boolean DEBUG = false;
 
-    // Defining the private class variables MIN_WIDTH,MIN_HEIGHT,MAX_WIDTH and MAX_HEIGHT to be in the range 100 to 4096 
+    // Setting the range of width and height to be in the range 100 to 4096 
     private static final int MIN_WIDTH = 100;
     private static final int MIN_HEIGHT = 100;
     private static final int MAX_WIDTH = 4096;
@@ -369,17 +369,29 @@ final class OverlayDisplayAdapter extends DisplayAdapter {
     
     // Defining abstract class "OverlayDisplayDevice" which inherits from abstract class "DisplayDevice"
     private abstract class OverlayDisplayDevice extends DisplayDevice {
+        // Declaring class variables for storing name, refresh rate, DisplayPresentationDeadlineNanos, secure
         private final String mName;
         private final float mRefreshRate;
         private final long mDisplayPresentationDeadlineNanos;
         private final boolean mSecure;
+        
+        // Array List of type "OverlayMode" that contains width, height, densityDpi of the Overlay Display Device
         private final List<OverlayMode> mRawModes;
+        
+        // Array of type "Mode" defined in Display.java, int variable to store default mode
         private final Display.Mode[] mModes;
         private final int mDefaultMode;
 
+        // Variables to store the state
         private int mState;
+        
+        // Variable "mSurfaceTexture"(type => SurfaceTexture imported from "android.graphics.SurfaceTexture")
         private SurfaceTexture mSurfaceTexture;
+        
+        // Variable "msurface"(type => Surface imported from "android.view.Surface")
         private Surface mSurface;
+        
+        // Variables to store the display device Information and also to store the Active modes
         private DisplayDeviceInfo mInfo;
         private int mActiveMode;
         
@@ -392,7 +404,10 @@ final class OverlayDisplayAdapter extends DisplayAdapter {
                 float refreshRate, long presentationDeadlineNanos,
                 boolean secure, int state,
                 SurfaceTexture surfaceTexture, int number) {
+            // Invoking the super class constructor with the appropriate parameter values
             super(OverlayDisplayAdapter.this, displayToken, UNIQUE_ID_PREFIX + number);
+            
+            // Assigning the parameter values to the class variables during object initialization
             mName = name;
             mRefreshRate = refreshRate;
             mDisplayPresentationDeadlineNanos = presentationDeadlineNanos;
@@ -592,14 +607,21 @@ final class OverlayDisplayAdapter extends DisplayAdapter {
      * Guarded by the {@link DisplayManagerService.SyncRoot} lock.
      */
     private final class OverlayDisplayHandle implements OverlayDisplayWindow.Listener {
+        // Setting Default moe index to be 0
         private static final int DEFAULT_MODE_INDEX = 0;
-
+        
+        // Variable to store the Overlay Display Handle Name
         private final String mName;
+        
+        // Array List of type "OverlayMode" to store the modes
         private final List<OverlayMode> mModes;
+        
+        // Variable to store the gravity, surface and number of the Overlay Display Handle
         private final int mGravity;
         private final boolean mSecure;
         private final int mNumber;
-
+        
+        // Variable to store the Window and Device information and also the Active mode value
         private OverlayDisplayWindow mWindow;
         private OverlayDisplayDevice mDevice;
         private int mActiveMode;
@@ -608,6 +630,7 @@ final class OverlayDisplayAdapter extends DisplayAdapter {
         // Constructor taking arguments for the class and values are initialized accordingly
         public OverlayDisplayHandle(String name, List<OverlayMode> modes, int gravity,
                 boolean secure, int number) {
+            // Assigning the parameter values to the class variables during object initialization
             mName = name;
             mModes = modes;
             mGravity = gravity;
