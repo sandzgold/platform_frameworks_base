@@ -470,41 +470,81 @@ final class OverlayDisplayAdapter extends DisplayAdapter {
         
         // Overriding the "getDisplayDeviceInfoLocked" defined in class "DisplayDeviceInfo" in the parent class
         @Override
+        // Function to return the Display Device Info which is immutable and of type "DisplayDeviceInfo"
         public DisplayDeviceInfo getDisplayDeviceInfoLocked() {
+            // Checking if the mInfo is null
             if (mInfo == null) {
+                // Set the Mode object "mode" with the value in the array "mModes" at index "mActiveMode"
                 Display.Mode mode = mModes[mActiveMode];
+                
+                // Set the OverlayMode object "rawMode" with the Array List value mRawModes at index "mActiveMode"
                 OverlayMode rawMode = mRawModes.get(mActiveMode);
+                
+                /* 
+                    Creating the new Display Defice Info Object mInfo and setting the name, uniqueID, width, height
+                    "getUniqueId" defined in parent class retrieves the Unique ID of the display device
+                    "getPhysicalWidth" defined in Device Class retrieves the physical width
+                    "getPhysicalHeight" defined in Device Class retrieves the physical height
+                */
                 mInfo = new DisplayDeviceInfo();
                 mInfo.name = mName;
                 mInfo.uniqueId = getUniqueId();
                 mInfo.width = mode.getPhysicalWidth();
                 mInfo.height = mode.getPhysicalHeight();
+                
+                /*
+                    Set the modeID, default mode ID, supported modes, density DPI
+                    "getModeId" defined in Display class returns the ID of the mode
+                    "mDensityDpi" is defined in OverlayMode class
+                */
                 mInfo.modeId = mode.getModeId();
                 mInfo.defaultModeId = mModes[0].getModeId();
                 mInfo.supportedModes = mModes;
                 mInfo.densityDpi = rawMode.mDensityDpi;
                 mInfo.xDpi = rawMode.mDensityDpi;
                 mInfo.yDpi = rawMode.mDensityDpi;
+                
+                // Set the value of "presentationDeadlineNanos" and "flags"
                 mInfo.presentationDeadlineNanos = mDisplayPresentationDeadlineNanos +
                         1000000000L / (int) mRefreshRate;   // display's deadline + 1 frame
+                // FLAG_PRESENTATION = 1 << 6 (Defined in DisplayDeviceInfo.java)
                 mInfo.flags = DisplayDeviceInfo.FLAG_PRESENTATION;
+                
+                // if mSecure is true the flag value is logically OR'ed with FLAG_SECURE => 1 << 2 (Defined in DisplayDeviceInfo.java)
                 if (mSecure) {
                     mInfo.flags |= DisplayDeviceInfo.FLAG_SECURE;
                 }
+                
+                /*
+                    Setting the value of "type", "touch" and "state"
+                    "TYPE_OVERLAY" => 4 (Defined in Display.java); "TOUCH_NONE" => 0; (Defined in DisplayDeviceInfo.java)
+                */
                 mInfo.type = Display.TYPE_OVERLAY;
                 mInfo.touch = DisplayDeviceInfo.TOUCH_NONE;
                 mInfo.state = mState;
             }
             return mInfo;
         }
-
+        
+        
+        // Overriding the function defined in the parent class
         @Override
+        // Setting the mode only if supported
         public void requestDisplayModesInTransactionLocked(int color, int id) {
+            // Initialize the index to -1
             int index = -1;
+            
+            // If input parameter is 0, set the index to 0
             if (id == 0) {
                 // Use the default.
                 index = 0;
-            } else {
+            }
+            // If index is other than 0
+            else {
+                /* 
+                    Iterating through the length of "mModes" Array, if the input parameter id value is equal to the modeID at
+                    of the mode in that index, then the index value is stored in the "index" variable and the function is exited.
+                */
                 for (int i = 0; i < mModes.length; i++) {
                     if (mModes[i].getModeId() == id) {
                         index = i;
@@ -512,16 +552,28 @@ final class OverlayDisplayAdapter extends DisplayAdapter {
                     }
                 }
             }
+            
+            // If index is -1, a warning log is created and Default mode value is set to index;
+            // If mode is not found;
             if (index == -1) {
+                // Create the warning log, with the TAG, and the warning message "Unable to locate the mode"
                 Slog.w(TAG, "Unable to locate mode " + id + ", reverting to default.");
                 index = mDefaultMode;
             }
+            
+            // Return from the function control, if the Active Mode is equal to the "index" value
             if (mActiveMode == index) {
                 return;
             }
+            
+            // Setting the "index" value to "mActiveMode"
             mActiveMode = index;
             mInfo = null;
+            
+            // Sends the display device event to the Display Adapter asynchronously(Defined in Parent class)
             sendDisplayDeviceEventLocked(this, DISPLAY_DEVICE_EVENT_CHANGED);
+            
+            // Calls when device switches to a new mode and "index" value is passed as parameter which denotes the index of the mode
             onModeChangedLocked(index);
         }
 
@@ -551,7 +603,9 @@ final class OverlayDisplayAdapter extends DisplayAdapter {
         private OverlayDisplayWindow mWindow;
         private OverlayDisplayDevice mDevice;
         private int mActiveMode;
-
+        
+        
+        // Constructor taking arguments for the class and values are initialized accordingly
         public OverlayDisplayHandle(String name, List<OverlayMode> modes, int gravity,
                 boolean secure, int number) {
             mName = name;
@@ -561,22 +615,29 @@ final class OverlayDisplayAdapter extends DisplayAdapter {
             mNumber = number;
 
             mActiveMode = 0;
-
+            
+            // Invoke the "showLocked" as soon as the object for the class is initialized
             showLocked();
         }
-
+        
+        // Method to post to the handler the status of the running Thread
         private void showLocked() {
             mUiHandler.post(mShowRunnable);
         }
-
+        
+        // Method to remove the call backs of running Threads and post the status to the Handler
         public void dismissLocked() {
             mUiHandler.removeCallbacks(mShowRunnable);
+            // "mDismissRunnable" is an object defined in class OverlayDisplayWindow which contains the window value as null and the 
+            // subsequent window dismissed
             mUiHandler.post(mDismissRunnable);
         }
-
+        
+        // Method to remove the call backs of Resizable window and post the status to Handler
         private void onActiveModeChangedLocked(int index) {
             mUiHandler.removeCallbacks(mResizeRunnable);
             mActiveMode = index;
+            // Condition to check if the mWindow is not null and if it's true, the resulting window is posted to the Handler
             if (mWindow != null) {
                 mUiHandler.post(mResizeRunnable);
             }
