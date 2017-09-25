@@ -69,39 +69,42 @@ import java.util.regex.Pattern;
 
 // Declaring the class "OverlayDisplayAdapter" which inherits from the parent class DisplayAdapter
 final class OverlayDisplayAdapter extends DisplayAdapter {
-    // Assigning the class constant variables TAG and DEBUG to "OverlayDisplayAdapter" and "false" respectively    
+    // TAG indicates the module from which the log is raised. In this case, it's the "OverlayDisplayAdapter"    
     static final String TAG = "OverlayDisplayAdapter";
     static final boolean DEBUG = false;
 
-    // Setting the range of width and height to be in the range 100 to 4096 
+    // Range of Display Width and Height are set to be in between 100 to 4096 
     private static final int MIN_WIDTH = 100;
     private static final int MIN_HEIGHT = 100;
     private static final int MAX_WIDTH = 4096;
     private static final int MAX_HEIGHT = 4096;
     
-    // Display pattern accepts a particular pattern to match the regular expression against multiple texts separated by ","
+    // Display pattern to match the reg. expression containing the modes and flags
     private static final Pattern DISPLAY_PATTERN =
             Pattern.compile("([^,]+)(,[a-z]+)*");
-    // Mode pattern accepts a particular pattern to match the regular expression denoted by "(num)*(num)/(num)"
+    // Mode pattern matches the regular expression denoted by "(width)*(height)/(densityDpi)"
     private static final Pattern MODE_PATTERN =
             Pattern.compile("(\\d+)x(\\d+)/(\\d+)");
 
-    // UNIQUE_ID_PREFIX to denote that current call is for overlay displays.
+    // Indicate a Unique ID for the Overlay Display Adapter to be used in "DisplayDevice.java"
     private static final String UNIQUE_ID_PREFIX = "overlay:";
     
-    // Declaring class variable mUiHandler of type Handler which is imported from android.os.Handler
+    /* 
+        Class Variable "mUiHandler" of type Handler which is used for posting to the message queue and also for
+        sending messages to the queue which can then run on an entirely different thread
+    */
     private final Handler mUiHandler;
     
-    /* Creating Array list with object mOverlays */
+    // Creating Array list mOverlays of type OverlayDisplayHandle to include all the overlay devices
      private final ArrayList<OverlayDisplayHandle> mOverlays =
             new ArrayList<OverlayDisplayHandle>();
     
-    /* Creating an empty string */
+    // Variable to store the content of the current Overlay Display Device from the Settings class
     private String mCurrentOverlaySetting = "";
 
     // Called with SyncRoot lock held.
     /* 
-        Constructor taking arguments for both parent class and the sub class
+        Constructor taking arguments for both parent class and the sub class variables
         The parent class constructor is invoked by the super method that passes values to the parent class variables.
     */
     public OverlayDisplayAdapter(DisplayManagerService.SyncRoot syncRoot,
@@ -120,7 +123,7 @@ final class OverlayDisplayAdapter extends DisplayAdapter {
         // Parent class method is invoked by passing the object pw of type PrintWriter
         super.dumpLocked(pw);
 
-        // Prints to the console the value of the current overlay setting and the size of the Array List "mOverlays"
+        // Prints to the console the value of the current overlay setting and the size of the Array List "mOverlays" in a text output stream
         pw.println("mCurrentOverlaySetting=" + mCurrentOverlaySetting);
         pw.println("mOverlays: size=" + mOverlays.size());
         
@@ -133,7 +136,7 @@ final class OverlayDisplayAdapter extends DisplayAdapter {
     /*
         Overriding the parent class method "registerLocked"
         "registerLocked" registers the Overlay Display Adapter with the Display Manager
-        Default display gets registered during the boot process while the remaining process gets registered dynamically.
+        Default display devices gets registered during the boot process while the remaining devices gets registered dynamically.
     */
 
     @Override
@@ -144,11 +147,11 @@ final class OverlayDisplayAdapter extends DisplayAdapter {
         /* 
             Invoking a new thread which checks for any content change in the Display device in the message queue
             and call the method "updateOverlayDisplayDevices" to update the status in the Display Manager.
-            Runnable is an interface which is inherited here.
+            Runnable implements a new thread which either schedules messages/ post to the message queue.
         */    
         getHandler().post(new Runnable() {
             @Override
-            // Overriding/Defining the interface method "run"
+            // Overriding the method "run"
             public void run() {
                 
                 /*
@@ -182,7 +185,7 @@ final class OverlayDisplayAdapter extends DisplayAdapter {
     }
     
     /* 
-        Check wether the control is returned back from the thread using "synchronized" and if true invoke 
+        Check wether the control is returned back from the thread using "synchronized" and if true invokes 
         the method "updateOverlayDisplayDevicesLocked" 
     */
     private void updateOverlayDisplayDevices() {
@@ -191,11 +194,11 @@ final class OverlayDisplayAdapter extends DisplayAdapter {
         }
     }
 
-    // Function to update the Overlay Devices with proper modes and log messages.
+    // Calculate the mode values for the Display Devices and update the same to the Display Manager
     private void updateOverlayDisplayDevicesLocked() {
         /*
-            "getString" retrieves the value from the database based on the access controller "getContext().getContentResolver()"
-            and the name "Settings.Global.OVERLAY_DISPLAY_DEVICES" which is looked up in the database.
+            "getString" retrieves the value from the database using the access controller "getContext().getContentResolver()"
+            and the name "Settings.Global.OVERLAY_DISPLAY_DEVICES" is looked up in the database.
         */        
         String value = Settings.Global.getString(getContext().getContentResolver(),
                 Settings.Global.OVERLAY_DISPLAY_DEVICES);
@@ -209,23 +212,26 @@ final class OverlayDisplayAdapter extends DisplayAdapter {
             return;
         }
         
-        // Assigning "value" to "mCurrentOverlaySetting"
+        // Assigning the Content defined in the database for the Display Device to "mCurrentOverlaySetting"
         mCurrentOverlaySetting = value;
         
         // Checking that Array List "mOverlays" is not empty and update the logs accordingly
         if (!mOverlays.isEmpty()) {
             /*
-                Invoking the method "i" from class Slog imported from "android.util.Slog"
-                Update the log with the Tag "OverlayDisplayAdapter" and the message "Dismissing all overlay display devices." 
+                Invoking the Information method from class Slog imported from "android.util.Slog"
+                Update the log with the Tag "OverlayDisplayAdapter" and the appropriate information message 
             */
             Slog.i(TAG, "Dismissing all overlay display devices.");
             
-            // Iterating over the Array List "mOverlays" and invoking the method "dismissLocked" which removes the call backs post it to handler
+            /* 
+                Iterating over the Array List "mOverlays" and invoking the method "dismissLocked" which removes 
+                any pending posts in the thread which is in the message queue
+            */
             for (OverlayDisplayHandle overlay : mOverlays) {
                 overlay.dismissLocked();
             }
             
-            // Clearing the Array List "mOverlays"
+            // Clearing the Array List "mOverlays" post removing the local state of each Display Device
             mOverlays.clear();
         }
         
