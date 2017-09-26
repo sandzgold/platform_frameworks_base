@@ -258,29 +258,29 @@ final class OverlayDisplayAdapter extends DisplayAdapter {
             if (displayMatcher.matches()) {
                 // If the count value exceeds 4 the log is updated with a warning accordingly and the control exits the function
                 if (count >= 4) {
-                    // Update a warning message with the "TAG" value and the "value" string if more than 4 overlay display devices are specified
+                    // Raise a warning message in the log with TAG and the appropriate warning message
                     Slog.w(TAG, "Too many overlay display devices specified: " + value);
                     break;
                 }
                 /* 
-                    "group" function stores the given parameter's subsequence of string matched with the previous match pattern.
+                    "group" function stores the given parameter's subset of string matched with the previous match pattern.
                     modeString contains the all the modes of "part"
                     flagString contains the all the flags of "part"
                 */
                 String modeString = displayMatcher.group(1);
                 String flagString = displayMatcher.group(2);
                 
-                // Create Array List "modes" of type "OverlayMode" defined at the end of the file
+                // Create Array List "modes" of type "OverlayMode" to store all the modes from "modeString"
                 ArrayList<OverlayMode> modes = new ArrayList<>();
                 
-                // Iterating over individual modes by splitting with regexp "\\|" in "modeString"
+                // Iterating over individual modes by splitting each modes with regexp "\\|" in "modeString"
                 for (String mode : modeString.split("\\|")) {
-                    // Creating an object modeMatcher which matches the "mode" with pre-defined "MODE_PATTERN" 
+                    // Creating an object "modeMatcher" which matches the "mode" with pre-defined "MODE_PATTERN" 
                     Matcher modeMatcher = MODE_PATTERN.matcher(mode);
                     
                     // Checks wether the "modeMatcher" matches entirely with the pattern
                     if (modeMatcher.matches()) {
-                        // Exception Handling for checing Number Format
+                        // Exception Handling for checking Number Format
                         try {
                             /*
                                 Width => First match in string upto length of 10 stored as integer
@@ -307,9 +307,9 @@ final class OverlayDisplayAdapter extends DisplayAdapter {
                                 modes.add(new OverlayMode(width, height, densityDpi));
                                 continue;
                             } 
-                            // If the above condition fails, the log is updated with proper message and the specific mode
+                            // If the above condition fails, the log is updated with warning message and the specific mode
                             else {
-                                // Invoke the method "w" which updates the log with the TAG value, appropriate warning message and the mode
+                                // Updates the log with the TAG value, appropriate warning message and the mode
                                 Slog.w(TAG, "Ignoring out-of-range overlay display mode: " + mode);
                             }
                         } catch (NumberFormatException ex) {
@@ -339,11 +339,12 @@ final class OverlayDisplayAdapter extends DisplayAdapter {
                     
                     /* 
                         Call the function "chooseOverlayGravity" with parameter "number" containing the count value
-                      which returns the value of the edges of the container based on the overlay number
+                        which returns the value of the edges of the container based on the "number"
                     */ 
                     int gravity = chooseOverlayGravity(number);
                     
-                    // Store the boolean value of (check if flagstring is null and if it contains the value ",secure" in "secure" variable
+                    // Store the boolean value of (check if flagstring is not null and if it contains the value ",secure") in "secure" variable
+                    // Stores the secure flag as a boolean value based on the flag input of the overlay display device
                     boolean secure = flagString != null && flagString.contains(",secure");
                     
                     // Update the log with the TAG value, and the appropriate message with the mode and the count of overlay device
@@ -361,6 +362,7 @@ final class OverlayDisplayAdapter extends DisplayAdapter {
     }
     
     // Function to compute the edge of the specification and return the same based on the "overlayNumber"
+    // Edge specification is defined in "android.view.Gravity"
     private static int chooseOverlayGravity(int overlayNumber) {
         switch (overlayNumber) {
             // "overlayNumber" => 1; Return the top left edge specification
@@ -381,10 +383,16 @@ final class OverlayDisplayAdapter extends DisplayAdapter {
     
     // Defining abstract class "OverlayDisplayDevice" which inherits from abstract class "DisplayDevice"
     private abstract class OverlayDisplayDevice extends DisplayDevice {
-        // Declaring class variables for storing name, refresh rate, DisplayPresentationDeadlineNanos, secure
+        // Name of the Overlay Display Device
         private final String mName;
+        
+        // Refresh Rate of the Overlay Display Device
         private final float mRefreshRate;
+        
+        // Variable to store the Time to advance the buffer before presentation
         private final long mDisplayPresentationDeadlineNanos;
+        
+        // Boolean variable to denote wether the Display Device is secure or not
         private final boolean mSecure;
         
         // Array List of type "OverlayMode" that contains width, height, densityDpi of the Overlay Display Device
@@ -392,19 +400,24 @@ final class OverlayDisplayAdapter extends DisplayAdapter {
         
         // Array of type "Mode" defined in Display.java, int variable to store default mode
         private final Display.Mode[] mModes;
+        
+        // Default Mode value of the Display Device
         private final int mDefaultMode;
 
-        // Variables to store the state
+        // Variables to store the state of the Display Device
         private int mState;
         
-        // Variable "mSurfaceTexture"(type => SurfaceTexture imported from "android.graphics.SurfaceTexture")
+        // Variable "mSurfaceTexture" to store the frames of image stream
+        // (type => SurfaceTexture imported from "android.graphics.SurfaceTexture")
         private SurfaceTexture mSurfaceTexture;
         
-        // Variable "msurface"(type => Surface imported from "android.view.Surface")
+        // Raw buffer which is invoked by the image streams(type => Surface imported from "android.view.Surface")
         private Surface mSurface;
         
         // Variables to store the display device Information and also to store the Active modes
         private DisplayDeviceInfo mInfo;
+        
+        // Active mode storage
         private int mActiveMode;
         
         /* 
@@ -438,11 +451,13 @@ final class OverlayDisplayAdapter extends DisplayAdapter {
                 OverlayMode mode = modes.get(i);
                 mModes[i] = createMode(mode.mWidth, mode.mHeight, refreshRate);
             }
+            
+            // Storing the active mode and default mode during object initialization
             mActiveMode = activeMode;
             mDefaultMode = defaultMode;
         }
         
-        // Function to set the Surface texture to null
+        // Function to set the Surface texture and the Surface values to null
         public void destroyLocked() {
             mSurfaceTexture = null;
             // If the "mSurface" is not null, the local reference for that surface is set to null and becomes invalid
@@ -459,7 +474,7 @@ final class OverlayDisplayAdapter extends DisplayAdapter {
         
         // Overriding the method "hasStableUniqueId" declared in parent class
         @Override
-        // Checks wether te Unique ID of the Device is stable across reboots and returns the boolean value accordingly
+        // Checks wether the Unique ID of the Device is stable across reboots and returns the boolean value accordingly
         public boolean hasStableUniqueId() {
             return false;
         }
@@ -467,7 +482,7 @@ final class OverlayDisplayAdapter extends DisplayAdapter {
         
         // Overriding the method "performTraversalInTransactionLocked" declared in parent class
         @Override
-        // Update the display device properties while in transaction
+        // Update the display device properties while in transaction(while it is being accessed)
         public void performTraversalInTransactionLocked() {
             // Condition to check if the Surface Texture object is not null
             if (mSurfaceTexture != null) {
@@ -531,7 +546,8 @@ final class OverlayDisplayAdapter extends DisplayAdapter {
                 mInfo.xDpi = rawMode.mDensityDpi;
                 mInfo.yDpi = rawMode.mDensityDpi;
                 
-                // Set the value of "presentationDeadlineNanos" and "flags"
+                // Set the value of "presentationDeadlineNanos" based on the refresh rate and the time to advance the buffer for the
+                // display device
                 mInfo.presentationDeadlineNanos = mDisplayPresentationDeadlineNanos +
                         1000000000L / (int) mRefreshRate;   // display's deadline + 1 frame
                 // FLAG_PRESENTATION = 1 << 6 (Defined in DisplayDeviceInfo.java)
@@ -550,6 +566,7 @@ final class OverlayDisplayAdapter extends DisplayAdapter {
                 mInfo.touch = DisplayDeviceInfo.TOUCH_NONE;
                 mInfo.state = mState;
             }
+            // Return the Information of the display device
             return mInfo;
         }
         
@@ -558,10 +575,10 @@ final class OverlayDisplayAdapter extends DisplayAdapter {
         @Override
         // Setting the mode only if supported
         public void requestDisplayModesInTransactionLocked(int color, int id) {
-            // Initialize the index to -1
+            // Default initialization to -1, so that the array index does not clash with the default "index" value
             int index = -1;
             
-            // If input parameter is 0, set the index to 0
+            // If ID of the device is 0, set the index to 0
             if (id == 0) {
                 // Use the default.
                 index = 0;
@@ -585,6 +602,8 @@ final class OverlayDisplayAdapter extends DisplayAdapter {
             if (index == -1) {
                 // Create the warning log, with the TAG, and the warning message "Unable to locate the mode"
                 Slog.w(TAG, "Unable to locate mode " + id + ", reverting to default.");
+                
+                // Setting the index to Default mode
                 index = mDefaultMode;
             }
             
@@ -619,7 +638,7 @@ final class OverlayDisplayAdapter extends DisplayAdapter {
      * Guarded by the {@link DisplayManagerService.SyncRoot} lock.
      */
     private final class OverlayDisplayHandle implements OverlayDisplayWindow.Listener {
-        // Setting Default moe index to be 0
+        // Setting Default mode index to be 0
         private static final int DEFAULT_MODE_INDEX = 0;
         
         // Variable to store the Overlay Display Handle Name
@@ -628,7 +647,7 @@ final class OverlayDisplayAdapter extends DisplayAdapter {
         // Array List of type "OverlayMode" to store the modes
         private final List<OverlayMode> mModes;
         
-        // Variable to store the gravity, surface and number of the Overlay Display Handle
+        // Variable to store the gravity, secure(boolean) and number of the Overlay Display Handle
         private final int mGravity;
         private final boolean mSecure;
         private final int mNumber;
@@ -648,19 +667,20 @@ final class OverlayDisplayAdapter extends DisplayAdapter {
             mGravity = gravity;
             mSecure = secure;
             mNumber = number;
-
+            
+            // Setting the active mode to 0 when the object is initialized
             mActiveMode = 0;
             
             // Invoke the "showLocked" as soon as the object for the class is initialized
             showLocked();
         }
         
-        // Method to post to the handler the status of the running Thread
+        // Method to post to the handler, the status of the running Thread
         private void showLocked() {
             mUiHandler.post(mShowRunnable);
         }
         
-        // Method to remove the call backs of running Threads and post the status to the Handler
+        // Method to remove the pending posts in the running Thread and post the status to the Handler
         public void dismissLocked() {
             mUiHandler.removeCallbacks(mShowRunnable);
             // "mDismissRunnable" is an object defined in class OverlayDisplayWindow which contains the window value as null and the 
@@ -668,7 +688,8 @@ final class OverlayDisplayAdapter extends DisplayAdapter {
             mUiHandler.post(mDismissRunnable);
         }
         
-        // Method to remove the call backs of Resizable window and post the status to Handler
+        // Method to remove the pending posts of the Resizable window and post the status to the Handler
+        // "index" denotes the Active mode of the device
         private void onActiveModeChangedLocked(int index) {
             mUiHandler.removeCallbacks(mResizeRunnable);
             mActiveMode = index;
@@ -682,6 +703,10 @@ final class OverlayDisplayAdapter extends DisplayAdapter {
         // Function overriding the declaration from the interface "OverlayDisplayWindow.Listener"
         @Override
         // Function to update the display device event with the event "DISPLAY_DEVICE_EVENT_ADDED" upon window creation 
+        // "surfaceTexture" holds the value of the frames of the image stream, 
+        // "refreshRate" hold the refresh rate of the display device
+        // "presentationDeadlineNanos" stores the time to advance the buffer value
+        // "state" stores the state of the display device
         public void onWindowCreated(SurfaceTexture surfaceTexture, float refreshRate,
                 long presentationDeadlineNanos, int state) {
             synchronized (getSyncRoot()) {
@@ -757,6 +782,8 @@ final class OverlayDisplayAdapter extends DisplayAdapter {
                 // Create an object "ipw" of type "IndentingPrintWriter" imported from "com.android.internal.util.IndentingPrintWriter"
                 // Mentioning 4 spaces as the indent length which is added to the object "ipw" using "increaseIndent"
                 final IndentingPrintWriter ipw = new IndentingPrintWriter(pw, "    ");
+                
+                // Increasing the Indent for the object ipw
                 ipw.increaseIndent();
                 
                 // Timeout of 200ms is provided to avoid a deadlock
@@ -782,7 +809,7 @@ final class OverlayDisplayAdapter extends DisplayAdapter {
                 // Add a view to the Window Manager and Clear the Live state from the Window (Defined in parent class)
                 window.show();
                 
-                // Setting "window" object to "mWindow" is the control from thread has returned
+                // Setting "window" object to "mWindow" if the control from thread has returned
                 synchronized (getSyncRoot()) {
                     mWindow = window;
                 }
