@@ -233,7 +233,7 @@ final class OverlayDisplayAdapter extends DisplayAdapter {
             
             /* 
                 Iterating over the Array List "mOverlays" and invoking the method "dismissLocked" which removes 
-                any pending posts in the thread which is in the message queue
+                any pending posts in the thread that  is in the message queue
             */
             for (OverlayDisplayHandle overlay : mOverlays) {
                 overlay.dismissLocked();
@@ -254,7 +254,7 @@ final class OverlayDisplayAdapter extends DisplayAdapter {
             */
             Matcher displayMatcher = DISPLAY_PATTERN.matcher(part);
             
-            // Checks wether the "displayMatcher" matches entirely with the pattern
+            // Checks whether the "displayMatcher" matches entirely with the pattern
             if (displayMatcher.matches()) {
                 // If the count value exceeds 4 the log is updated with a warning accordingly and the control exits the function
                 if (count >= 4) {
@@ -264,8 +264,8 @@ final class OverlayDisplayAdapter extends DisplayAdapter {
                 }
                 /* 
                     "group" function stores the given parameter's subset of string matched with the previous match pattern.
-                    modeString contains the all the modes of "part"
-                    flagString contains the all the flags of "part"
+                    modeString contains the all  modes of "part"
+                    flagString contains the all  flags of "part"
                 */
                 String modeString = displayMatcher.group(1);
                 String flagString = displayMatcher.group(2);
@@ -278,7 +278,7 @@ final class OverlayDisplayAdapter extends DisplayAdapter {
                     // Creating an object "modeMatcher" which matches the "mode" with pre-defined "MODE_PATTERN" 
                     Matcher modeMatcher = MODE_PATTERN.matcher(mode);
                     
-                    // Checks wether the "modeMatcher" matches entirely with the pattern
+                    // Checks whether the "modeMatcher" matches entirely with the pattern
                     if (modeMatcher.matches()) {
                         // Exception Handling for checking Number Format
                         try {
@@ -292,7 +292,7 @@ final class OverlayDisplayAdapter extends DisplayAdapter {
                             int densityDpi = Integer.parseInt(modeMatcher.group(3), 10);
                             
                             /*
-                                Checking wether the width exists between the range of 100 - 4096,
+                                Checking whether the width exists between the range of 100 - 4096,
                                 Height between the range of 100 - 4096 and DensityDpi between the range of 120 - 640
                                 (DENSITY_LOW and DENSITY_XXXHIGH defined in "android.util.DisplayMetrics" for the device
                                 resolution between Low-density screens upto 4k television screens)
@@ -392,7 +392,7 @@ final class OverlayDisplayAdapter extends DisplayAdapter {
         // Variable to store the Time to advance the buffer before presentation
         private final long mDisplayPresentationDeadlineNanos;
         
-        // Boolean variable to denote wether the Display Device is secure or not
+        // Boolean variable to denote whether the Display Device is secure or not
         private final boolean mSecure;
         
         // Array List of type "OverlayMode" that contains width, height, densityDpi of the Overlay Display Device
@@ -474,7 +474,7 @@ final class OverlayDisplayAdapter extends DisplayAdapter {
         
         // Overriding the method "hasStableUniqueId" declared in parent class
         @Override
-        // Checks wether the Unique ID of the Device is stable across reboots and returns the boolean value accordingly
+        // Checks whether the Unique ID of the Device is stable across reboots and returns the boolean value accordingly
         public boolean hasStableUniqueId() {
             return false;
         }
@@ -523,7 +523,7 @@ final class OverlayDisplayAdapter extends DisplayAdapter {
                 OverlayMode rawMode = mRawModes.get(mActiveMode);
                 
                 /* 
-                    Creating the new Display Defice Info Object mInfo and setting the name, uniqueID, width, height
+                    Creating the new Display Device Info Object mInfo and setting the name, uniqueID, width, height
                     "getUniqueId" defined in parent class retrieves the Unique ID of the display device
                     "getPhysicalWidth" defined in Device Class retrieves the physical width
                     "getPhysicalHeight" defined in Device Class retrieves the physical height
@@ -587,7 +587,7 @@ final class OverlayDisplayAdapter extends DisplayAdapter {
             // If index is other than 0
             else {
                 /* 
-                    Iterating through the length of "mModes" Array, if the input parameter id value is equal to the modeID at
+                    Iterating through the length of "mModes" Array, if the input parameter id value is equal to the modeID 
                     of the mode in that index, then the index value is stored in the "index" variable and the function is exited.
                 */
                 for (int i = 0; i < mModes.length; i++) {
@@ -704,7 +704,7 @@ final class OverlayDisplayAdapter extends DisplayAdapter {
         // Function overriding the declaration from the interface "OverlayDisplayWindow.Listener"
         @Override
         // Function to update the display device event with the event "DISPLAY_DEVICE_EVENT_ADDED" upon window creation 
-        // "surfaceTexture" holds the value of the frames of the image stream, 
+        // "surfaceTexture" holds the value of the frames of the image stream
         // "refreshRate" hold the refresh rate of the display device
         // "presentationDeadlineNanos" stores the time to advance the buffer value
         // "state" stores the state of the display device
@@ -736,7 +736,7 @@ final class OverlayDisplayAdapter extends DisplayAdapter {
         @Override
         // Function to update the display device event with the event "DISPLAY_DEVICE_EVENT_REMOVED" upon window deallocation 
         public void onWindowDestroyed() {
-            // Check wether the control returned from the Thread
+            // Check whether the control returned from the Thread
             synchronized (getSyncRoot()) {
                 // If the mDevice object is not null, the destroyLocked function is invoked which sets the 
                 // "mSurfaceTexture " & "mSurface" to null and releases the "mSurface"
@@ -824,7 +824,7 @@ final class OverlayDisplayAdapter extends DisplayAdapter {
             public void run() {
                 OverlayDisplayWindow window;
                 
-                // Setting "window" object to "mWindow" is the control from thread has returned and setting "mWindow" to null
+                // Setting "window" object to "mWindow" if the control from thread has returned and setting "mWindow" to null
                 synchronized (getSyncRoot()) {
                     window = mWindow;
                     mWindow = null;
