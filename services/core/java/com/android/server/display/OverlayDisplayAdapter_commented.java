@@ -78,11 +78,12 @@ final class OverlayDisplayAdapter extends DisplayAdapter {
     private static final int MIN_HEIGHT = 100;
     private static final int MAX_WIDTH = 4096;
     private static final int MAX_HEIGHT = 4096;
-    
+   
     // Display pattern to match the reg. expression containing the modes and flags
     private static final Pattern DISPLAY_PATTERN =
             Pattern.compile("([^,]+)(,[a-z]+)*");
-    // Mode pattern matches the regular expression denoted by "(width)*(height)/(densityDpi)"
+    // Mode pattern matches the regular expression denoted by "(width)*(height)/(densityDpi)" 
+    // which calculates the mode of the display device. 
     private static final Pattern MODE_PATTERN =
             Pattern.compile("(\\d+)x(\\d+)/(\\d+)");
 
@@ -95,7 +96,7 @@ final class OverlayDisplayAdapter extends DisplayAdapter {
     */
     private final Handler mUiHandler;
     
-    // Creating Array list mOverlays of type OverlayDisplayHandle to include all the overlay devices
+    // Creating Array list mOverlays of type OverlayDisplayHandle to include all the overlay display devices
      private final ArrayList<OverlayDisplayHandle> mOverlays =
             new ArrayList<OverlayDisplayHandle>();
     
@@ -160,10 +161,14 @@ final class OverlayDisplayAdapter extends DisplayAdapter {
                     the method "registerContentObserver" imported from "android.database.ContentObserver"
                 */
                 /*  
+                    Checks for the content change in the current overlay display device and if any change is encountered, the 
+                    "updateOverlayDisplayDevices" function gets invoked.
+                */
+                /*
                     "registerContentObserver" takes the arguments "Settings.Global.getUriFor" which gets the content URI
                     for the parameter "Settings.Global.OVERLAY_DISPLAY_DEVICES" which is imported from "android.provider.Settings",
                     boolean value true, and a "ConstructObserver" object imported from "android.database.ContentObserver"
-                */  
+                */
                 getContext().getContentResolver().registerContentObserver(
                         
                         Settings.Global.getUriFor(Settings.Global.OVERLAY_DISPLAY_DEVICES),
@@ -207,7 +212,10 @@ final class OverlayDisplayAdapter extends DisplayAdapter {
             value = "";
         }
         
-        // If the value is equal to the value of "mCurrentOverlaySetting", the control from this function is returned to its caller.
+        /* 
+            If the Content of the current Display Device is equal to the value of "mCurrentOverlaySetting", 
+            the control from this function is returned to its caller.
+        */
         if (value.equals(mCurrentOverlaySetting)) {
             return;
         }
@@ -235,7 +243,7 @@ final class OverlayDisplayAdapter extends DisplayAdapter {
             mOverlays.clear();
         }
         
-        // Initializing count to 0
+        // Count variable to keep track of the number of Overlay Display Devices that are active
         int count = 0;
         
         // Iterating each element of value split with the regex ";"
