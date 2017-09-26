@@ -560,9 +560,11 @@ final class OverlayDisplayAdapter extends DisplayAdapter {
                 
                 /*
                     Setting the value of "type", "touch" and "state"
-                    "TYPE_OVERLAY" => 4 (Defined in Display.java); "TOUCH_NONE" => 0; (Defined in DisplayDeviceInfo.java)
+                    "TYPE_OVERLAY" => 4 (Defined in Display.java); "TOUCH_NONE" => 0(Touch Disabled); (Defined in DisplayDeviceInfo.java)
                 */
                 mInfo.type = Display.TYPE_OVERLAY;
+                
+                // Touch denotes wether the device is touch enabled internally, externally, virtually or touch disabled
                 mInfo.touch = DisplayDeviceInfo.TOUCH_NONE;
                 mInfo.state = mState;
             }
