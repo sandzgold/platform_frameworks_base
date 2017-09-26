@@ -574,6 +574,7 @@ final class OverlayDisplayAdapter extends DisplayAdapter {
         // Overriding the function defined in the parent class
         @Override
         // Setting the mode only if supported
+        // Color and ID of the device is passed as parameter
         public void requestDisplayModesInTransactionLocked(int color, int id) {
             // Default initialization to -1, so that the array index does not clash with the default "index" value
             int index = -1;
@@ -741,7 +742,7 @@ final class OverlayDisplayAdapter extends DisplayAdapter {
                 // "mSurfaceTexture " & "mSurface" to null and releases the "mSurface"
                 if (mDevice != null) {
                     mDevice.destroyLocked();
-                    // Sends the display device event "DISPLAY_DEVICE_EVENT_REMOVED" to the Display Adapter asynchronously
+                    // Sends the display device event "DISPLAY_DEVICE_EVENT_REMOVED" to the Display Adapter "mDevice" asynchronously
                     sendDisplayDeviceEventLocked(mDevice, DISPLAY_DEVICE_EVENT_REMOVED);
                 }
             }
